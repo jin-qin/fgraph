@@ -5,30 +5,12 @@ final class FGraphMessages {
     static final class InputMessage {
       private final String srcId;
       private final String dstId;
+      private final Long timestamp;
   
-      InputMessage(String srcId, String dstId) {
+      InputMessage(String srcId, String dstId, Long timestamp) {
         this.srcId = srcId;
         this.dstId = dstId;
-      }
-  
-      String getSrcId() {
-        return srcId;
-      }
-  
-      String getDstId() {
-        return dstId;
-      }
-    }
-  
-    static final class OutputMessage {
-      private final String srcId;
-      private final String dstId;
-      private final Integer accCount; // accumulate message number
-  
-      OutputMessage(String srcId, String dstId, Integer accCount) {
-        this.srcId = srcId;
-        this.dstId = dstId;
-        this.accCount = accCount;
+        this.timestamp = timestamp;
       }
   
       String getSrcId() {
@@ -39,13 +21,37 @@ final class FGraphMessages {
         return dstId;
       }
 
-      Integer getAccCount() {
-        return accCount;
+      Long getTimestamp() {
+        return timestamp;
+      }
+    }
+  
+    static final class OutputMessage {
+      private final String srcId;
+      private final String dstId;
+      private final Long timestamp;
+  
+      OutputMessage(String srcId, String dstId, Long timestamp) {
+        this.srcId = srcId;
+        this.dstId = dstId;
+        this.timestamp = timestamp;
+      }
+  
+      String getSrcId() {
+        return srcId;
+      }
+  
+      String getDstId() {
+        return dstId;
+      }
+
+      Long getTimestamp() {
+        return timestamp;
       }
   
       @Override
       public String toString() {
-        return String.format("OutputMessage(%s, %s, %d)", getSrcId(), getDstId(), getAccCount());
+        return String.format("OutputMessage(%s, %s, %d)", getSrcId(), getDstId(), getTimestamp());
       }
     }
   }

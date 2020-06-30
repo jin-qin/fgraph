@@ -1,20 +1,30 @@
 package bu.dsp.fgraph;
 
-import java.util.Collection;
+import java.time.Duration;
+import java.util.TreeSet;
 
-import com.google.common.collect.Iterables;
+import javax.annotation.Nonnull;
 
+import org.apache.flink.api.common.typeinfo.TypeHint;
+import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.statefun.sdk.Context;
 import org.apache.flink.statefun.sdk.StatefulFunction;
 import org.apache.flink.statefun.sdk.annotations.Persisted;
-import org.apache.flink.statefun.sdk.state.PersistedAppendingBuffer;
+import org.apache.flink.statefun.sdk.state.Expiration;
+import org.apache.flink.statefun.sdk.state.PersistedTable;
 
 import bu.dsp.fgraph.FGraphMessages.InputMessage;
 import bu.dsp.fgraph.FGraphMessages.OutputMessage;
+import bu.dsp.fgraph.FGraphTypes.NeighborOfVertex;
 
-final class FGraphFunction implements StatefulFunction {
+final class FGraphFunction implements StatefulFunction {  
+  // PersistedTable<srcId, neighbors-sorted-by-timestamp>
   @Persisted
-  PersistedAppendingBuffer<InputMessage> relationsBuffer = PersistedAppendingBuffer.of("relations-buffer", InputMessage.class);
+  PersistedTable<String, TreeSet<NeighborOfVertex>> relationsTable = PersistedTable.of(
+      "relations-table", 
+      String.class, 
+      TypeInformation.of(new TypeHint<TreeSet<NeighborOfVertex>>(){}).getTypeClass(), 
+      Expiration.expireAfterWriting(Duration.ofHours(1)));
 
   @Override
   public void invoke(Context context, Object input) {
@@ -22,22 +32,33 @@ final class FGraphFunction implements StatefulFunction {
       throw new IllegalArgumentException("Unknown message received " + input);
     }
     InputMessage in = (InputMessage) input;
-    relationsBuffer.append(in);
 
-    Integer accCount = sizeOfBuffer(relationsBuffer);
+    // get neighbors of the vertex from the table
+    TreeSet<NeighborOfVertex> nbs = getNbsFromTable(in.getSrcId());
+    
+    // if exists, return false and do nothing
+    nbs.add(new NeighborOfVertex(in.getSrcId(), in.getDstId(), in.getTimestamp()));
 
-    OutputMessage out = new OutputMessage(in.getSrcId(), in.getDstId(), accCount);
+    // update the table
+    relationsTable.set(in.getSrcId(), nbs);
+
+    OutputMessage out = new OutputMessage(in.getSrcId(), in.getDstId(), in.getTimestamp());
 
     context.send(FGraphConstants.RESULT_EGRESS, out);
   }
 
-  private Integer sizeOfBuffer(PersistedAppendingBuffer<InputMessage> buffer) {
-    Iterable<InputMessage> data = buffer.view();
-    // if (data instanceof Collection) {
-    //   return ((Collection<?>) data).size();
-    // }
-    // return null;
+  /**
+   * Get neighbors treeset from table
+   */
+  @Nonnull
+  private TreeSet<NeighborOfVertex> getNbsFromTable(String key) {
+    TreeSet<NeighborOfVertex> nbs = null;
+    if (relationsTable.get(key) == null) {
+      nbs = new TreeSet<NeighborOfVertex>(new FGraphTypes.NeighborOfVertex.NeighborComparator());
+      relationsTable.set(key, nbs);
+      return nbs;
+    }
 
-    return Iterables.size(data);
+    return relationsTable.get(key);
   }
 }
