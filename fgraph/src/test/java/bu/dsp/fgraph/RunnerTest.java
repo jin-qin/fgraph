@@ -12,20 +12,17 @@ public class RunnerTest {
 
   @Test
   public void run() throws Exception {
-    Harness harness = new Harness().withKryoMessageSerializer()
-        .withGlobalConfiguration("parallelism", "4")
-        .withSupplyingIngress(FGraphConstants.REQUEST_INGRESS_EDEG, new MessageGenerator())
+    Harness harness = new Harness().withKryoMessageSerializer().withGlobalConfiguration("parallelism", "4")
+        .withSupplyingIngress(FGraphConstants.REQUEST_INGRESS_EDEG, new EdgeGenerator())
         .withSupplyingIngress(FGraphConstants.REQUEST_INGRESS_QUERY, new QueryGenerator())
-        .withPrintingEgress(FGraphConstants.RESULT_EGRESS);
+        .withPrintingEgress(FGraphConstants.RESULT_EGRESS_QUERY_NEIGHBORS);
 
-        harness.start();
+    harness.start();
   }
 
-  /** generate a random message, once a second a second. */
-  private static final class MessageGenerator implements SerializableSupplier<FGraphMessages.EdgeMessage> {
-
-    private static final long serialVersionUID = 1;
-
+  /** generate messages from relations source file. **/
+  private static final class EdgeGenerator implements SerializableSupplier<FGraphMessages.EdgeMessage> {
+    private static final long serialVersionUID = -7708670958427247564L;
     private BufferedReader br = null;
 
     @Override
@@ -47,7 +44,7 @@ public class RunnerTest {
       } catch (IOException e) {
         e.printStackTrace();
       }
-      
+
       return newMessage(line);
     }
 
@@ -61,16 +58,21 @@ public class RunnerTest {
     }
   }
 
-  /** generate a random message, once a second a second. */
+  /** generate query messages every 3 seconds**/
   private static final class QueryGenerator implements SerializableSupplier<FGraphMessages.QueryMessage> {
-
-    private static final long serialVersionUID = 1;
-
-    private BufferedReader br = null;
+    private static final long serialVersionUID = 2675863538043226751L;
 
     @Override
     public FGraphMessages.QueryMessage get() {
-      return null;
+      try {
+        Thread.sleep(3_000);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+      return new FGraphMessages.QueryMessage(
+        FGraphMessages.QueryMessage.Command.QUERY_NEIGHBORS, 
+        "0000001" , 
+        new FGraphTypes.QueryNeighborsArgs("0000001", 2, 7857852L, 7949381L));
     }
   }
 }

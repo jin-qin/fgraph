@@ -2,7 +2,6 @@ package bu.dsp.fgraph;
 
 import org.apache.flink.statefun.sdk.io.Router;
 
-import bu.dsp.fgraph.FGraphMessages.EdgeMessage;
 import bu.dsp.fgraph.FGraphMessages.QueryMessage;;
 
 final class FGraphQueryRouter implements Router<QueryMessage> {
@@ -14,7 +13,8 @@ final class FGraphQueryRouter implements Router<QueryMessage> {
 
   @Override
   public void route(QueryMessage message, Downstream<QueryMessage> downstream) {
-    String function_id = String.format("%d", ((EdgeMessage)message.getMsgContent()).getSrcId().hashCode() % parallelism);
+    Integer partition = message.getSrcId().hashCode() % parallelism;
+    String function_id = String.format("%d", partition);
 
     downstream.forward(FGraphConstants.FGRAPH_FUNCTION_TYPE, function_id, message);
   }
