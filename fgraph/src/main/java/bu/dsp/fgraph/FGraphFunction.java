@@ -13,7 +13,7 @@ import org.apache.flink.statefun.sdk.annotations.Persisted;
 import org.apache.flink.statefun.sdk.state.Expiration;
 import org.apache.flink.statefun.sdk.state.PersistedTable;
 
-import bu.dsp.fgraph.FGraphMessages.InputMessage;
+import bu.dsp.fgraph.FGraphMessages.EdgeMessage;
 import bu.dsp.fgraph.FGraphMessages.OutputMessage;
 import bu.dsp.fgraph.FGraphTypes.NeighborOfVertex;
 
@@ -28,10 +28,10 @@ final class FGraphFunction implements StatefulFunction {
 
   @Override
   public void invoke(Context context, Object input) {
-    if (!(input instanceof InputMessage)) {
+    if (!(input instanceof EdgeMessage)) {
       throw new IllegalArgumentException("Unknown message received " + input);
     }
-    InputMessage in = (InputMessage) input;
+    EdgeMessage in = (EdgeMessage) input;
 
     // get neighbors of the vertex from the table
     TreeSet<NeighborOfVertex> nbs = getNbsFromTable(in.getSrcId());

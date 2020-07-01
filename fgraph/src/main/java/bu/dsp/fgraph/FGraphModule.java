@@ -28,10 +28,14 @@ public final class FGraphModule implements StatefulFunctionModule {
 
     @Override
     public void configure(Map<String, String> globalConfiguration, Binder binder) {
-        FGraphRouter frouter = new FGraphRouter();
-        frouter.setParallelism(Integer.parseInt(globalConfiguration.get("parallelism")));
+        FGraphEdgeRouter fEdgeRouter = new FGraphEdgeRouter();
+        fEdgeRouter.setParallelism(Integer.parseInt(globalConfiguration.get("parallelism")));
 
-        binder.bindIngressRouter(FGraphConstants.REQUEST_INGRESS, frouter);
-        binder.bindFunctionProvider(FGraphConstants.FGRAPH_FUNCTION_TYPE, unused -> new FGraphFunction());
+        FGraphQueryRouter fQueryRouter = new FGraphQueryRouter();
+        fQueryRouter.setParallelism(Integer.parseInt(globalConfiguration.get("parallelism")));
+
+        binder.bindIngressRouter(FGraphConstants.REQUEST_INGRESS_EDEG, fEdgeRouter);
+        binder.bindIngressRouter(FGraphConstants.REQUEST_INGRESS_QUERY, fQueryRouter);
+        binder.bindFunctionProvider(FGraphConstants.FGRAPH_FUNCTION_TYPE, unused -> new FGraphMatchFunction());
     }
 }
