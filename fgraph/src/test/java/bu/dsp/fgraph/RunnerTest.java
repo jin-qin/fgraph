@@ -51,10 +51,10 @@ public class RunnerTest {
     private FGraphMessages.EdgeMessage newMessage(String line) {
       String[] strs = line.split("\t");
       if (line.length() < 5) {
-        return new FGraphMessages.EdgeMessage("null", "null", -1L);
+        return new FGraphMessages.EdgeMessage("null", "null", -1L, Integer.MAX_VALUE);
       }
 
-      return new FGraphMessages.EdgeMessage(strs[2], strs[3], Long.parseLong(strs[1]));
+      return new FGraphMessages.EdgeMessage(strs[2], strs[3], Long.parseLong(strs[1]), Integer.parseInt(strs[4]));
     }
   }
 

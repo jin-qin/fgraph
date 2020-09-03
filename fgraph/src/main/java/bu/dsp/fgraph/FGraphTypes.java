@@ -1,6 +1,10 @@
 package bu.dsp.fgraph;
 
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Set;
+
+import bu.dsp.fgraph.FGraphMessages.SyncMessage;
 
 public class FGraphTypes {
     static class Vertex {
@@ -24,11 +28,15 @@ public class FGraphTypes {
       private String srcId; // source id of this vertex
       private String ID; // vertex id
       private Long timestamp;
+      private Integer distance; // the distance to the source vertex, default is INF
+      private Boolean visited;  // visited or not, default is false
       
       public Vertex(String srcId, String ID, Long timestamp) {
         this.srcId = srcId;
         this.ID = ID;
         this.timestamp = timestamp;
+        this.distance = Integer.MAX_VALUE;
+        this.visited = false;
       }
   
       public String getSrcId() {
@@ -42,15 +50,31 @@ public class FGraphTypes {
       public Long getTimestamp() {
         return this.timestamp;
       }
+
+      public void setDistance(Integer distance) {
+        this.distance = distance;
+      }
+
+      public Integer getDistance() {
+        return this.distance;
+      }
+
+      public void setVisited(Boolean visited) {
+        this.visited = visited;
+      }
+
+      public Boolean getVisited() {
+        return this.visited;
+      }
     }
 
-    static class QueryNeighborsArgs {
-      private String srcId;
-      private Integer nHop; // query how many hops neighbors?
-      private Long timestampStart;
-      private Long timestampEnd;
+    static class QueryArgsBase {
+      protected String srcId;
+      protected Integer nHop; // query how many hops neighbors?
+      protected Long timestampStart;
+      protected Long timestampEnd;
 
-      public QueryNeighborsArgs(String srcId, Integer nHop, Long timestampStart, Long timestampEnd) {
+      public QueryArgsBase(String srcId, Integer nHop, Long timestampStart, Long timestampEnd) {
         this.srcId = srcId;
         this.nHop = nHop;
         this.timestampStart = timestampStart;
@@ -71,6 +95,67 @@ public class FGraphTypes {
 
       Long getTimestampEnd() {
         return timestampEnd;
+      }
+    }
+
+    static class QueryNeighborsArgs extends QueryArgsBase{
+      public QueryNeighborsArgs(String srcId, Integer nHop, Long timestampStart, Long timestampEnd) {
+        super(srcId, nHop, timestampStart, timestampEnd);
+      }
+    }
+
+    static class QueryShortestPathArgs extends QueryArgsBase{
+      private String dstId;
+
+      public QueryShortestPathArgs(String srcId, String dstId, Integer nHop, Long timestampStart, Long timestampEnd) {
+        super(srcId, nHop, timestampStart, timestampEnd);
+
+        this.dstId = dstId;
+      }
+
+      String getDstId() {
+        return dstId;
+      }
+    }
+
+    static class SyncMessageArgsBase {
+      protected Set<String> nbsIds; // neighbors ids that need to be requested
+      protected int hopsToGo; // how many hops remain.
+      protected Long tsStart;
+      protected Long tsEnd;
+
+      public SyncMessageArgsBase(Set<String> nbsIds, int hopsToGo, Long tsStart, Long tsEnd) {
+        this.nbsIds = nbsIds;
+        this.hopsToGo= hopsToGo;
+        this.tsStart = tsStart;
+        this.tsEnd = tsEnd;
+      }
+
+      Set<String> getNbsIds() {
+        return nbsIds;
+      }
+
+      int getCurrentHop() {
+        return hopsToGo;
+      }
+
+      void addNbId(String nbId) {
+        nbsIds.add(nbId);
+      }
+    }
+
+    static class SyncNeighborsArgs extends SyncMessageArgsBase{
+      private String srcId; // source vertex id.
+      private String dstId; // destination vertex id, i.e. the target vertex in the shortest path query.
+
+      public SyncNeighborsArgs(Set<String> nbsIds, int hopsToGo, String dstId, Long tsStart, Long tsEnd) {
+        super(nbsIds, hopsToGo, tsStart, tsEnd);
+
+        this.dstId = dstId;
+      }
+
+      String getDstId() {
+        return dstId;
       }
     }
 }

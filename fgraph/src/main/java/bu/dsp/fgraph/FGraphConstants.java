@@ -16,6 +16,9 @@ final class FGraphConstants {
     static final IngressIdentifier<QueryMessage> REQUEST_INGRESS_QUERY = 
         new IngressIdentifier<>(QueryMessage.class, "bu.dsp.fgraph", "query");
 
+    static final EgressIdentifier<OutputNeighborsMessage> RESULT_EGRESS_QUERY_SHORTEST_PATH = 
+        new EgressIdentifier<>("bu.dsp.fgraph", "out_query_shortest_path", OutputNeighborsMessage.class);
+
     static final EgressIdentifier<OutputNeighborsMessage> RESULT_EGRESS_QUERY_NEIGHBORS = 
         new EgressIdentifier<>("bu.dsp.fgraph", "out_query_neighbors", OutputNeighborsMessage.class);
 

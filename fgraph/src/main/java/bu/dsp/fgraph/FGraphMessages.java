@@ -10,11 +10,13 @@ final class FGraphMessages {
       private final String srcId;
       private final String dstId;
       private final Long timestamp;
+      private final Integer distance;
   
-      EdgeMessage(String srcId, String dstId, Long timestamp) {
+      EdgeMessage(String srcId, String dstId, Long timestamp, Integer distance) {
         this.srcId = srcId;
         this.dstId = dstId;
         this.timestamp = timestamp;
+        this.distance = distance;
       }
   
       String getSrcId() {
@@ -29,9 +31,13 @@ final class FGraphMessages {
         return timestamp;
       }
 
+      Integer getDistance() {
+        return distance;
+      }
+
       @Override
       public String toString() {
-        return String.format("EdgeMessage(%s, %s, %d)", getSrcId(), getDstId(), getTimestamp());
+        return String.format("EdgeMessage(%s, %s, %d, %d)", srcId, dstId, timestamp, distance);
       }
     }
 
@@ -66,6 +72,35 @@ final class FGraphMessages {
       @Override
       public String toString() {
         return String.format("QueryMessage(%s, %s)", cmd.toString(), msgContent.toString());
+      }
+    }
+
+    static final class SyncMessage {
+      public enum Command {
+        SYNC_NEIGHBORS_REQ,
+        SYNC_NEIGHBORS_RSP
+      }
+
+      private final String fid_sender; // sender's function id
+      private final Command cmd;
+      private final Object msgContent;
+
+      SyncMessage(String fid_sender, Command cmd, Object msgContent) {
+        this.fid_sender = fid_sender;
+        this.cmd = cmd;
+        this.msgContent = msgContent;
+      }
+
+      public String getSenderFunctionID() {
+        return fid_sender;
+      }
+
+      public Command getCmd() {
+        return cmd;
+      }
+
+      public Object getMsgContent() {
+        return msgContent;
       }
     }
   

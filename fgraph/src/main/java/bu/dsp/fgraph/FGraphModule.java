@@ -19,6 +19,8 @@ package bu.dsp.fgraph;
 
 import org.apache.flink.statefun.sdk.spi.StatefulFunctionModule;
 
+import bu.dsp.misc.FGraphConfig;
+
 import java.util.Map;
 
 import com.google.auto.service.AutoService;
@@ -28,11 +30,10 @@ public final class FGraphModule implements StatefulFunctionModule {
 
     @Override
     public void configure(Map<String, String> globalConfiguration, Binder binder) {
+        FGraphConfig.setParallelism(Integer.parseInt(globalConfiguration.get("parallelism")));
+        
         FGraphEdgeRouter fEdgeRouter = new FGraphEdgeRouter();
-        fEdgeRouter.setParallelism(Integer.parseInt(globalConfiguration.get("parallelism")));
-
         FGraphQueryRouter fQueryRouter = new FGraphQueryRouter();
-        fQueryRouter.setParallelism(Integer.parseInt(globalConfiguration.get("parallelism")));
 
         binder.bindIngressRouter(FGraphConstants.REQUEST_INGRESS_EDEG, fEdgeRouter);
         binder.bindIngressRouter(FGraphConstants.REQUEST_INGRESS_QUERY, fQueryRouter);
